@@ -1,0 +1,179 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Curiosity — Rumsfeld Matrix</title>
+  <style>
+    body { font-family: Inter, Arial, sans-serif; margin: 18px; background: #fff; color: #111 }
+    .matrix { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; max-width: 1100px }
+    .quad { border: 1px solid #ddd; height: 320px; position: relative; border-radius: 8px; padding: 8px; background: #0f1720; color: #fff }
+    .quad h3 { margin: 0 0 6px 0; font-size: 14px }
+    .node { position: absolute; padding: 6px 10px; border-radius: 999px; color: #fff; font-size: 13px; }
+  .node { position: absolute; padding: 6px 10px; border-radius: 999px; color: #fff; font-size: 13px; display: inline-block; z-index: 2 }
+    .green { background: #16a34a }
+    .yellow { background: #f59e0b }
+    .blue { background: #3b82f6 }
+    .purple { background: #8b5cf6 }
+    .activity { margin-top: 18px; max-width: 1100px }
+    pre { background: #0b1220; color: #dbeafe; padding: 12px; border-radius: 6px; overflow: auto }
+    .legend { margin-top: 10px }
+  </style>
+  <script>
+    function placeGrid(el, quad, index, total) {
+      // Deterministic grid placement: calculate number of columns and rows
+      const paddingX = 12
+      const paddingY = 36
+      const cols = Math.max(1, Math.ceil(Math.sqrt(total)))
+      const rows = Math.max(1, Math.ceil(total / cols))
+      const col = index % cols
+      const row = Math.floor(index / cols)
+      const w = Math.max(16, quad.clientWidth - paddingX*2)
+      const h = Math.max(16, quad.clientHeight - paddingY)
+      const cellW = w / cols
+      const cellH = h / rows
+      const x = Math.round(paddingX + col * cellW + (cellW - el.offsetWidth)/2)
+      const y = Math.round(paddingY + row * cellH + (cellH - el.offsetHeight)/2)
+      el.style.left = (x) + 'px'
+      el.style.top = (y) + 'px'
+    }
+
+    async function refresh() {
+      try {
+        const res = await fetch('/activity')
+        const data = await res.json()
+        const db = data.db || {}
+
+  // Update headline with last activity timestamp
+  const last = (data.activity && data.activity.length) ? data.activity[data.activity.length-1].ts : null
+  document.getElementById('headline_ts').textContent = last || 'no activity yet'
+
+  // Clear quads
+  ['kk','ku','uk','uu'].forEach(id => { document.getElementById(id).innerHTML = '<h3>'+document.getElementById(id).dataset.title+'</h3>' })
+
+        // Known Known: entities (green)
+        const kkNodes = []
+        (db.entities||[]).forEach(e => {
+          const el = document.createElement('div')
+          el.className = 'node green'
+          el.textContent = e.name
+          el.dataset.id = e.id
+          el.dataset.kind = 'entity'
+          el.onclick = () => nodeClicked(el)
+          document.getElementById('kk').appendChild(el)
+          kkNodes.push(el)
+        })
+
+        // Known Unknown: curiosity_queue (explicit questions) — yellow
+        const kuNodes = []
+        (db.curiosity_queue||[]).forEach(q => {
+          const el = document.createElement('div')
+          el.className = 'node yellow'
+          el.textContent = q.question.length>28 ? q.question.slice(0,26)+'…' : q.question
+          el.dataset.id = q.id
+          el.dataset.kind = 'question'
+          el.onclick = () => nodeClicked(el)
+          document.getElementById('ku').appendChild(el)
+          kuNodes.push(el)
+        })
+
+        // Unknown Known: memory_notes that reference entities (blue)
+        const ukNodes = []
+        const uuNodes = []
+        (db.memory_notes||[]).forEach(n => {
+          const hasLinks = n.linked_entities && n.linked_entities.length>0
+          const el = document.createElement('div')
+          el.className = 'node '+(hasLinks? 'blue':'purple')
+          const text = n.text.length>28 ? n.text.slice(0,26)+'…' : n.text
+          el.textContent = '"'+text+'"'
+          el.dataset.id = n.id
+          el.dataset.kind = 'note'
+          el.onclick = () => nodeClicked(el)
+          const target = hasLinks ? 'uk' : 'uu'
+          document.getElementById(target).appendChild(el)
+          if (hasLinks) ukNodes.push(el); else uuNodes.push(el)
+        })
+
+        // Place nodes deterministically on a grid
+        kkNodes.forEach((el, i) => placeGrid(el, document.getElementById('kk'), i, kkNodes.length))
+        kuNodes.forEach((el, i) => placeGrid(el, document.getElementById('ku'), i, kuNodes.length))
+        ukNodes.forEach((el, i) => placeGrid(el, document.getElementById('uk'), i, ukNodes.length))
+        uuNodes.forEach((el, i) => placeGrid(el, document.getElementById('uu'), i, uuNodes.length))
+
+  // Activity list
+        const out = document.getElementById('out')
+        out.innerHTML = ''
+        data.activity.slice(-80).reverse().forEach(e => {
+          const d = document.createElement('div')
+          d.innerHTML = `<div><b>${e.kind}</b> <small>${e.ts}</small></div><pre>${JSON.stringify(e.payload, null, 2)}</pre>`
+          out.appendChild(d)
+        })
+
+        // Raw log textarea
+        const raw = document.getElementById('rawlog')
+        raw.value = (data.activity||[]).map(x=>JSON.stringify(x)).join('\n')
+
+        // Fallback textual nodes and debug info
+        const nodeList = document.getElementById('node_list')
+        nodeList.innerHTML = ''
+        const debug = document.getElementById('debug')
+        const counts = { kk: (db.entities||[]).length, ku: (db.curiosity_queue||[]).length, uk: (db.memory_notes||[]).filter(n=>n.linked_entities && n.linked_entities.length>0).length, uu: (db.memory_notes||[]).filter(n=>!n.linked_entities || n.linked_entities.length==0).length }
+        debug.textContent = JSON.stringify(counts, null, 2)
+        if ((db.entities||[]).length) {
+          const h = document.createElement('div'); h.innerHTML = '<b>Entities</b>:'; nodeList.appendChild(h)
+          (db.entities||[]).forEach(e=>{ const p=document.createElement('div'); p.textContent = e.name + ' ('+e.confidence.toFixed(2)+')'; nodeList.appendChild(p) })
+        }
+        if ((db.curiosity_queue||[]).length) {
+          const h = document.createElement('div'); h.innerHTML = '<b>Questions</b>:'; nodeList.appendChild(h)
+          (db.curiosity_queue||[]).forEach(q=>{ const p=document.createElement('div'); p.textContent = q.question + ' ('+q.uncertainty+')'; nodeList.appendChild(p) })
+        }
+        if ((db.memory_notes||[]).length) {
+          const h = document.createElement('div'); h.innerHTML = '<b>Memory Notes</b>:'; nodeList.appendChild(h)
+          (db.memory_notes||[]).forEach(n=>{ const p=document.createElement('div'); p.textContent = n.text + ' [' + (n.linked_entities? n.linked_entities.length : 0) + ' links]'; nodeList.appendChild(p) })
+        }
+      } catch(err) {
+        console.error(err)
+      }
+    }
+
+    async function nodeClicked(el) {
+      // Send an action to the server to 'cycle' the node's quadrant
+      const payload = { id: el.dataset.id, kind: el.dataset.kind }
+      try {
+        await fetch('/action', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) })
+        // Visual feedback: flash
+        el.style.transform = 'scale(1.05)'
+        setTimeout(()=>el.style.transform='scale(1)',200)
+      } catch(e) { console.error(e) }
+    }
+    setInterval(refresh, 1400)
+    window.onload = refresh
+  </script>
+</head>
+<body>
+  <h1>Curiosity — Rumsfeld Matrix</h1>
+  <div>Last update: <span id="headline_ts">...</span></div>
+  <div class="matrix">
+    <div class="quad" id="kk" data-title="Known Knowns"><h3>Known Knowns</h3></div>
+    <div class="quad" id="ku" data-title="Known Unknowns"><h3>Known Unknowns</h3></div>
+    <div class="quad" id="uk" data-title="Unknown Knowns"><h3>Unknown Knowns</h3></div>
+    <div class="quad" id="uu" data-title="Unknown Unknowns"><h3>Unknown Unknowns</h3></div>
+  </div>
+
+  <div class="legend">
+    <strong>Legend:</strong>
+    <span style="display:inline-block;margin-left:8px;padding:6px 10px;background:#16a34a;color:#fff;border-radius:6px">Known Known</span>
+    <span style="display:inline-block;margin-left:8px;padding:6px 10px;background:#f59e0b;color:#fff;border-radius:6px">Known Unknown</span>
+    <span style="display:inline-block;margin-left:8px;padding:6px 10px;background:#3b82f6;color:#fff;border-radius:6px">Unknown Known</span>
+    <span style="display:inline-block;margin-left:8px;padding:6px 10px;background:#8b5cf6;color:#fff;border-radius:6px">Unknown Unknown</span>
+  </div>
+
+  <h2 style="margin-top:20px">Activity</h2>
+  <div id="out" class="activity"></div>
+  <h3>Raw activity log</h3>
+  <textarea id="rawlog" style="width:100%;height:220px;background:#0b1220;color:#dbeafe;border-radius:6px;padding:8px;overflow:auto"></textarea>
+  <h3 style="margin-top:18px">Nodes (text fallback)</h3>
+  <div id="node_list" style="padding:8px;border:1px solid #ddd;border-radius:8px;max-width:1100px;background:#fff;color:#111;min-height:60px"></div>
+  <h3 style="margin-top:12px">Debug</h3>
+  <pre id="debug" style="max-width:1100px;background:#f6f8fa;padding:8px;border-radius:8px;min-height:40px"></pre>
+</body>
+</html>

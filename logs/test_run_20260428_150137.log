@@ -1,0 +1,8 @@
+
+Re-running: TestConsolidation.test_consolidation_returns_entities
+────────────────────────────────────────────────────────────────
+  FAIL  test_consolidation_returns_entities  [test_harness.py:435]
+        NotImplementedError
+        → python3 test_harness.py TestConsolidation.test_consolidation_returns_entities
+
+Log: /home/ian/code/curiousity/logs/test_run_20260428_150137.log

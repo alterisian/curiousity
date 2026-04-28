@@ -1,0 +1,240 @@
+
+────────────────────────────────────────────────────────────────
+  Database Schema
+────────────────────────────────────────────────────────────────
+  PASS  test_all_four_tables_created
+  PASS  test_curiosity_queue_columns
+  PASS  test_curiosity_queue_invalid_status_rejected
+  PASS  test_entities_columns
+  PASS  test_entity_confidence_above_one_rejected
+  PASS  test_entity_confidence_below_zero_rejected
+  PASS  test_entity_id_is_primary_key  [Inserting two entities with the same id must raise IntegrityError.]
+  PASS  test_facts_columns
+  PASS  test_foreign_key_fact_requires_known_entity  [A fact whose subject_id does not exist in entities must be rejected.]
+  PASS  test_init_db_is_idempotent  [Calling init_db twice must not raise an error.]
+  PASS  test_memory_notes_columns
+
+────────────────────────────────────────────────────────────────
+  Data Insertion & Retrieval
+────────────────────────────────────────────────────────────────
+  PASS  test_advance_question_invalid_status_raises
+  PASS  test_advance_question_status
+  PASS  test_enqueue_question
+  PASS  test_insert_entity_returns_id
+  FAIL  test_insert_fact_links_entities  [test_harness.py:240]
+        NotImplementedError
+        → python3 test_harness.py TestDataInsertionRetrieval.test_insert_fact_links_entities
+  FAIL  test_insert_memory_note  [test_harness.py:251]
+        NotImplementedError
+        → python3 test_harness.py TestDataInsertionRetrieval.test_insert_memory_note
+  PASS  test_inserted_entity_is_readable
+  FAIL  test_memory_note_linked_entities_is_json  [test_harness.py:261]
+        NotImplementedError
+        → python3 test_harness.py TestDataInsertionRetrieval.test_memory_note_linked_entities_is_json
+
+────────────────────────────────────────────────────────────────
+  Extraction Pipeline
+────────────────────────────────────────────────────────────────
+  FAIL  test_entity_confidence_in_range  [test_harness.py:320]
+        NotImplementedError
+        → python3 test_harness.py TestExtractionPipeline.test_entity_confidence_in_range
+  FAIL  test_extraction_calls_llm_once  [test_harness.py:339]
+        NotImplementedError
+        → python3 test_harness.py TestExtractionPipeline.test_extraction_calls_llm_once
+  FAIL  test_extraction_passes_text_to_prompt  [test_harness.py:343]
+        NotImplementedError
+        → python3 test_harness.py TestExtractionPipeline.test_extraction_passes_text_to_prompt
+  FAIL  test_extraction_raises_on_missing_entities_key  [test_harness.py:350]
+        NotImplementedError
+        → python3 test_harness.py TestExtractionPipeline.test_extraction_raises_on_missing_entities_key
+  FAIL  test_extraction_raises_on_non_json_response  [test_harness.py:364]
+        NotImplementedError
+        → python3 test_harness.py TestExtractionPipeline.test_extraction_raises_on_non_json_response
+  FAIL  test_extraction_raises_on_out_of_range_confidence  [test_harness.py:359]
+        NotImplementedError
+        → python3 test_harness.py TestExtractionPipeline.test_extraction_raises_on_out_of_range_confidence
+  FAIL  test_extraction_returns_entities_key  [test_harness.py:305]
+        NotImplementedError
+        → python3 test_harness.py TestExtractionPipeline.test_extraction_returns_entities_key
+  FAIL  test_extraction_returns_facts_key  [test_harness.py:310]
+        NotImplementedError
+        → python3 test_harness.py TestExtractionPipeline.test_extraction_returns_facts_key
+  FAIL  test_extraction_returns_uncertainties_key  [test_harness.py:315]
+        NotImplementedError
+        → python3 test_harness.py TestExtractionPipeline.test_extraction_returns_uncertainties_key
+  FAIL  test_extraction_with_empty_input_still_valid  [Empty input should not crash — LLM may return empty lists.]  [test_harness.py:371]
+        NotImplementedError
+        → python3 test_harness.py TestExtractionPipeline.test_extraction_with_empty_input_still_valid
+  FAIL  test_fact_confidence_in_range  [test_harness.py:326]
+        NotImplementedError
+        → python3 test_harness.py TestExtractionPipeline.test_fact_confidence_in_range
+  FAIL  test_facts_are_triples  [test_harness.py:332]
+        NotImplementedError
+        → python3 test_harness.py TestExtractionPipeline.test_facts_are_triples
+
+────────────────────────────────────────────────────────────────
+  Temporary Staging
+────────────────────────────────────────────────────────────────
+  PASS  test_multiple_stagings_accumulate
+  PASS  test_staged_data_contains_uncertainties
+  PASS  test_staged_data_preserved_for_consolidation
+  PASS  test_staging_does_not_write_to_entities
+  PASS  test_staging_does_not_write_to_facts
+
+────────────────────────────────────────────────────────────────
+  Consolidation
+────────────────────────────────────────────────────────────────
+  FAIL  test_consolidation_confidence_not_lower_than_source  [test_harness.py:450]
+        NotImplementedError
+        → python3 test_harness.py TestConsolidation.test_consolidation_confidence_not_lower_than_source
+  FAIL  test_consolidation_passes_staged_data_to_prompt  [test_harness.py:456]
+        NotImplementedError
+        → python3 test_harness.py TestConsolidation.test_consolidation_passes_staged_data_to_prompt
+  FAIL  test_consolidation_raises_on_missing_entities_key  [test_harness.py:463]
+        NotImplementedError
+        → python3 test_harness.py TestConsolidation.test_consolidation_raises_on_missing_entities_key
+  FAIL  test_consolidation_returns_entities  [test_harness.py:435]
+        NotImplementedError
+        → python3 test_harness.py TestConsolidation.test_consolidation_returns_entities
+  FAIL  test_consolidation_returns_facts  [test_harness.py:439]
+        NotImplementedError
+        → python3 test_harness.py TestConsolidation.test_consolidation_returns_facts
+  FAIL  test_duplicate_entities_reduce_count  [test_harness.py:445]
+        NotImplementedError
+        → python3 test_harness.py TestConsolidation.test_duplicate_entities_reduce_count
+  FAIL  test_empty_staged_input_returns_empty_graph  [test_harness.py:467]
+        NotImplementedError
+        → python3 test_harness.py TestConsolidation.test_empty_staged_input_returns_empty_graph
+
+────────────────────────────────────────────────────────────────
+  Curiosity Queue
+────────────────────────────────────────────────────────────────
+  FAIL  test_each_question_has_priority  [test_harness.py:499]
+        NotImplementedError
+        → python3 test_harness.py TestCuriosityQueue.test_each_question_has_priority
+  FAIL  test_each_question_has_text  [test_harness.py:486]
+        NotImplementedError
+        → python3 test_harness.py TestCuriosityQueue.test_each_question_has_text
+  FAIL  test_each_question_has_uncertainty  [test_harness.py:492]
+        NotImplementedError
+        → python3 test_harness.py TestCuriosityQueue.test_each_question_has_uncertainty
+  FAIL  test_high_uncertainty_gets_high_priority  [test_harness.py:512]
+        NotImplementedError
+        → python3 test_harness.py TestCuriosityQueue.test_high_uncertainty_gets_high_priority
+  FAIL  test_questions_generated  [test_harness.py:482]
+        NotImplementedError
+        → python3 test_harness.py TestCuriosityQueue.test_questions_generated
+  FAIL  test_questions_raises_on_bad_uncertainty  [test_harness.py:535]
+        NotImplementedError
+        → python3 test_harness.py TestCuriosityQueue.test_questions_raises_on_bad_uncertainty
+  FAIL  test_questions_stored_in_db  [test_harness.py:505]
+        NotImplementedError
+        → python3 test_harness.py TestCuriosityQueue.test_questions_stored_in_db
+  PASS  test_status_lifecycle
+
+────────────────────────────────────────────────────────────────
+  Memory Decay
+────────────────────────────────────────────────────────────────
+  FAIL  test_confidence_never_goes_negative  [test_harness.py:585]
+        NotImplementedError
+        → python3 test_harness.py TestMemoryDecay.test_confidence_never_goes_negative
+  FAIL  test_decay_deletes_low_confidence_notes  [test_harness.py:558]
+        NotImplementedError
+        → python3 test_harness.py TestMemoryDecay.test_decay_deletes_low_confidence_notes
+  FAIL  test_decay_does_not_affect_entities  [test_harness.py:595]
+        NotImplementedError
+        → python3 test_harness.py TestMemoryDecay.test_decay_does_not_affect_entities
+  FAIL  test_decay_does_not_affect_facts  [test_harness.py:604]
+        NotImplementedError
+        → python3 test_harness.py TestMemoryDecay.test_decay_does_not_affect_facts
+  FAIL  test_decay_preserves_high_confidence_notes  [test_harness.py:566]
+        NotImplementedError
+        → python3 test_harness.py TestMemoryDecay.test_decay_preserves_high_confidence_notes
+  FAIL  test_decay_reduces_confidence  [test_harness.py:547]
+        NotImplementedError
+        → python3 test_harness.py TestMemoryDecay.test_decay_reduces_confidence
+  FAIL  test_decay_returns_count_of_deleted_notes  [test_harness.py:576]
+        NotImplementedError
+        → python3 test_harness.py TestMemoryDecay.test_decay_returns_count_of_deleted_notes
+
+────────────────────────────────────────────────────────────────
+  End-to-End
+────────────────────────────────────────────────────────────────
+  FAIL  test_all_curiosity_items_start_pending  [test_harness.py:627]
+        NotImplementedError
+        → python3 test_harness.py TestEndToEnd.test_all_curiosity_items_start_pending
+  FAIL  test_decay_after_pipeline_reduces_note  [test_harness.py:627]
+        NotImplementedError
+        → python3 test_harness.py TestEndToEnd.test_decay_after_pipeline_reduces_note
+  FAIL  test_graph_referential_integrity_maintained  [Every fact's subject_id and object_id must exist in entities.]  [test_harness.py:627]
+        NotImplementedError
+        → python3 test_harness.py TestEndToEnd.test_graph_referential_integrity_maintained
+  FAIL  test_malaga_example_generates_curiosity  [test_harness.py:627]
+        NotImplementedError
+        → python3 test_harness.py TestEndToEnd.test_malaga_example_generates_curiosity
+  FAIL  test_malaga_example_stores_entities  [test_harness.py:627]
+        NotImplementedError
+        → python3 test_harness.py TestEndToEnd.test_malaga_example_stores_entities
+  FAIL  test_malaga_example_stores_facts  [test_harness.py:627]
+        NotImplementedError
+        → python3 test_harness.py TestEndToEnd.test_malaga_example_stores_facts
+  FAIL  test_memory_note_written  [test_harness.py:627]
+        NotImplementedError
+        → python3 test_harness.py TestEndToEnd.test_memory_note_written
+  FAIL  test_storage_within_budget  [After 50 ingestion cycles with decay, the DB size must stay]  [test_harness.py:627]
+        NotImplementedError
+        → python3 test_harness.py TestEndToEnd.test_storage_within_budget
+
+════════════════════════════════════════════════════════════════
+  66 tests   22 passed   44 failed   0 skipped
+════════════════════════════════════════════════════════════════
+
+────────────────────────────────────────────────────────────────
+  Newly Passing (+22)
+────────────────────────────────────────────────────────────────
+  + test_status_lifecycle
+    status lifecycle
+  + test_advance_question_invalid_status_raises
+    advance question invalid status raises
+  + test_advance_question_status
+    advance question status
+  + test_enqueue_question
+    enqueue question
+  + test_insert_entity_returns_id
+    insert entity returns id
+  + test_inserted_entity_is_readable
+    inserted entity is readable
+  + test_all_four_tables_created
+    all four tables created
+  + test_curiosity_queue_columns
+    curiosity queue columns
+  + test_curiosity_queue_invalid_status_rejected
+    curiosity queue invalid status rejected
+  + test_entities_columns
+    entities columns
+  + test_entity_confidence_above_one_rejected
+    entity confidence above one rejected
+  + test_entity_confidence_below_zero_rejected
+    entity confidence below zero rejected
+  + test_entity_id_is_primary_key
+    Inserting two entities with the same id must raise IntegrityError.
+  + test_facts_columns
+    facts columns
+  + test_foreign_key_fact_requires_known_entity
+    A fact whose subject_id does not exist in entities must be rejected.
+  + test_init_db_is_idempotent
+    Calling init_db twice must not raise an error.
+  + test_memory_notes_columns
+    memory notes columns
+  + test_multiple_stagings_accumulate
+    multiple stagings accumulate
+  + test_staged_data_contains_uncertainties
+    staged data contains uncertainties
+  + test_staged_data_preserved_for_consolidation
+    staged data preserved for consolidation
+  + test_staging_does_not_write_to_entities
+    staging does not write to entities
+  + test_staging_does_not_write_to_facts
+    staging does not write to facts
+
+Log: /home/ian/code/curiousity/logs/test_run_20260428_145501.log

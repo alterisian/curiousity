@@ -1,0 +1,8 @@
+
+Re-running: TestDatabaseSchema.test_all_four_tables_created
+────────────────────────────────────────────────────────────────
+  FAIL  test_all_four_tables_created  [test_harness.py:61]
+        NotImplementedError
+        → python3 test_harness.py TestDatabaseSchema.test_all_four_tables_created
+
+Log: /home/ian/code/curiousity/logs/test_run_20260428_144700.log

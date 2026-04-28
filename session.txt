@@ -1,0 +1,118 @@
+SESSION SUMMARY — Curiosity Memory System
+Last updated: 2026-04-28
+
+═══════════════════════════════════════════════════════════════
+WHERE WE ARE
+═══════════════════════════════════════════════════════════════
+
+66/66 mock tests passing. 8 live (Mistral API) tests written but not yet run.
+The system is fully implemented. The only thing left is wiring the live LLM.
+
+═══════════════════════════════════════════════════════════════
+WHAT WE BUILT
+═══════════════════════════════════════════════════════════════
+
+A local-first Curiosity Memory System that:
+  - Ingests raw text
+  - Extracts entities + fact triples via LLM
+  - Stages extractions in memory (no premature DB writes)
+  - Consolidates staged data via a second LLM pass (deduplication)
+  - Stores canonical knowledge in SQLite
+  - Generates curiosity questions about gaps/contradictions
+  - Decays memory notes over time, pruning low-confidence ones
+
+Development methodology: Test-First Driven Development (TFDD)
+  - All 66 tests written before any implementation
+  - Each test failed with NotImplementedError before being made to pass
+  - One stub implemented at a time
+  - Full suite run after each implementation to catch regressions
+
+═══════════════════════════════════════════════════════════════
+FILE STRUCTURE
+═══════════════════════════════════════════════════════════════
+
+curiosity/
+  db.py           — fully implemented (init_db, insert_entity, insert_fact,
+                    insert_memory_note, enqueue_question,
+                    advance_question_status, apply_decay)
+  pipeline.py     — fully implemented (call_llm via Mistral REST API,
+                    extract_knowledge, consolidate, generate_curiosity,
+                    + validation helpers)
+  __init__.py
+
+test_harness.py   — 66 mock tests + 8 live tests (gated by CURIOSITY_LIVE_API=1)
+meta_test.py      — validates the test harness contract (11 meta-tests)
+orchestrator.md   — TFDD strategy documentation
+README.md         — full system documentation including pipeline + guarantees
+session.txt       — this file
+logs/
+  test_run_<timestamp>.log   — auto-saved output of every run
+  last_passing.json          — tracks which tests passed last run
+
+═══════════════════════════════════════════════════════════════
+TEST SUITES
+═══════════════════════════════════════════════════════════════
+
+Mock suites (always run, no API key needed):
+  1. Database Schema          — 11 tests — init_db, constraints, FK, idempotent
+  2. Data Insertion/Retrieval —  8 tests — CRUD for all 4 tables
+  3. Extraction Pipeline      — 12 tests — extract_knowledge + validation
+  4. Temporary Staging        —  5 tests — no premature DB writes
+  5. Consolidation            —  7 tests — consolidate + validation
+  6. Curiosity Queue          —  8 tests — generate_curiosity + enqueue
+  7. Memory Decay             —  7 tests — apply_decay, pruning, isolation
+  8. End-to-End               —  8 tests — full pipeline, referential integrity, 100MB budget
+
+Live suite (requires CURIOSITY_LIVE_API=1 MISTRAL_API_KEY=...):
+  9. Live Extraction Smoke    —  8 tests — real Mistral API calls
+
+═══════════════════════════════════════════════════════════════
+WHAT IS NEXT
+═══════════════════════════════════════════════════════════════
+
+1. Run the live test suite against the real Mistral API:
+
+   CURIOSITY_LIVE_API=1 MISTRAL_API_KEY=your-key python3 test_harness.py
+
+2. Follow TFDD loop for any failures:
+   - Re-run failing test alone
+   - Fix implementation in curiosity/pipeline.py (call_llm)
+   - Re-run full suite
+
+3. After live tests pass, remaining work from spec:
+   - Embeddings (sentence-transformers + FAISS) — schema column exists, no logic yet
+   - Search ingestion (Google Search / SerpAPI) — text-only currently
+   - A CLI or REPL to actually run the system interactively
+
+═══════════════════════════════════════════════════════════════
+KEY COMMANDS
+═══════════════════════════════════════════════════════════════
+
+Run mock suite:         python3 test_harness.py
+Run live suite:         CURIOSITY_LIVE_API=1 MISTRAL_API_KEY=... python3 test_harness.py
+Re-run single test:     python3 test_harness.py ClassName.test_name
+Run meta test:          python3 meta_test.py
+View last log:          cat logs/$(ls -t logs/*.log | head -1)
+
+═══════════════════════════════════════════════════════════════
+IMPLEMENTATION NOTES
+═══════════════════════════════════════════════════════════════
+
+call_llm (curiosity/pipeline.py):
+  - Uses urllib.request (stdlib only, no requests package needed)
+  - Model: mistral-small-latest
+  - Requires MISTRAL_API_KEY env var, raises ValueError if missing
+  - Uses response_format: json_object to ensure parseable output
+  - Raises ValueError on HTTP errors or invalid JSON
+
+apply_decay (curiosity/db.py):
+  - Only touches memory_notes — entities and facts are permanent
+  - Multiplies both confidence AND decay columns by decay_factor
+  - Prunes rows where confidence * decay <= prune_threshold
+  - Returns count of deleted rows
+
+DB constraints added beyond the original spec:
+  - NOT NULL on required columns
+  - CHECK(confidence >= 0.0 AND confidence <= 1.0) on all confidence columns
+  - CHECK(status IN ('pending','active','resolved','dropped')) on curiosity_queue
+  - FOREIGN KEY enforcement (PRAGMA foreign_keys = ON in fresh_db())

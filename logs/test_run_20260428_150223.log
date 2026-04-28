@@ -1,0 +1,8 @@
+
+Re-running: TestCuriosityQueue.test_each_question_has_priority
+────────────────────────────────────────────────────────────────
+  FAIL  test_each_question_has_priority  [test_harness.py:499]
+        NotImplementedError
+        → python3 test_harness.py TestCuriosityQueue.test_each_question_has_priority
+
+Log: /home/ian/code/curiousity/logs/test_run_20260428_150223.log

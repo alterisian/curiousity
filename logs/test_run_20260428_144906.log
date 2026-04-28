@@ -1,0 +1,8 @@
+
+Re-running: TestDatabaseSchema.test_foreign_key_fact_requires_known_entity
+────────────────────────────────────────────────────────────────
+  FAIL  test_foreign_key_fact_requires_known_entity  [A fact whose subject_id does not exist in entities must be rejected.]  [test_harness.py:205]
+        NotImplementedError
+        → python3 test_harness.py TestDatabaseSchema.test_foreign_key_fact_requires_known_entity
+
+Log: /home/ian/code/curiousity/logs/test_run_20260428_144906.log

@@ -1,0 +1,6 @@
+
+Re-running: TestCuriosityQueue.test_each_question_has_priority
+────────────────────────────────────────────────────────────────
+  PASS  test_each_question_has_priority
+
+Log: /home/ian/code/curiousity/logs/test_run_20260428_150258.log

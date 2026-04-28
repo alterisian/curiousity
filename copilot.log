@@ -1,0 +1,31 @@
+# copilot.log - Action log created by the assistant
+# Format: ISO8601 UTC — ACTION — Details
+
+2026-04-28T15:19:00Z — READ — /home/ian/code/curiousity/session.txt (extracted project state, test plan, and next steps)
+2026-04-28T15:21:04Z — RUN  — python3 test_harness.py (mock suite) — Result: 66/66 tests passed — Log: /home/ian/code/curiousity/logs/test_run_20260428_152104.log
+2026-04-28T15:21:30Z — READ — /home/ian/code/curiousity/curiosity/pipeline.py (inspected call_llm and prompts)
+2026-04-28T15:21:45Z — READ — /home/ian/code/curiousity/CLAUDE.md (reviewed Claude integration notes and commands)
+2026-04-28T15:22:10Z — MESSAGE — Sent options to user for next steps (A: run live tests, B: add multi-LLM adapter, C: error handling, D: CLI/REPL)
+2026-04-28T15:23:00Z — CREATE — /home/ian/code/curiousity/copilot.log (this file) — Purpose: record assistant actions on user request
+
+# Future actions by the assistant will be appended here (edits, tests run, fixes applied).
+
+2026-04-28T15:30:00Z — EDIT  — /home/ian/code/curiousity/.envrc — Added correctly-spelled MISTRAL_API_KEY copied from existing MISTAL_API_KEY to ensure test harness can find it
+2026-04-28T15:28:30Z — ADD   — /home/ian/code/curiousity/run_live_tests.sh — Created wrapper to source .envrc and run live tests when direnv isn't active
+2026-04-28T15:33:00Z — EDIT  — /home/ian/code/curiousity/run_live_tests.sh — Use `set -a` when sourcing .envrc so variables without `export` are available to subprocesses
+2026-04-28T16:16:27Z — RUN   — ./run_live_tests.sh — Live test run: 74 tests, 72 passed, 2 failed — Failures due to TypeError in curiosity generation when comparing float and str (likely LLM returned numeric fields as strings)
+2026-04-28T16:19:10Z — EDIT  — /home/ian/code/curiousity/curiosity/pipeline.py — Coerce 'uncertainty' and 'priority' to float in generate_curiosity before validation to handle numeric strings from LLM
+2026-04-28T16:22:40Z — EDIT  — /home/ian/code/curiousity/curiosity/pipeline.py — Added tolerant parsing for qualitative uncertainty/priority (e.g. 'High', '80%') and clamping to [0.0,1.0]
+2026-04-28T16:18:59Z — RUN   — ./run_live_tests.sh — Live test run (after fixes): 74/74 passed — Log: /home/ian/code/curiousity/logs/test_run_20260428_161859.log
+2026-04-28T16:28:00Z — ADD   — /home/ian/code/curiousity/curiosity/logger.py — Added JSONL activity logger (logs/activity.jsonl)
+2026-04-28T16:28:15Z — EDIT  — /home/ian/code/curiousity/curiosity/pipeline.py — Log LLM prompts & raw responses via logger.log_llm_call
+2026-04-28T16:28:30Z — EDIT  — /home/ian/code/curiousity/curiosity/db.py — Log DB writes via logger.log_db_write
+2026-04-28T16:29:00Z — ADD   — /home/ian/code/curiousity/web/index.html — Simple polling web UI for activity and DB snapshot
+2026-04-28T16:29:00Z — ADD   — /home/ian/code/curiousity/web/serve_web.py — Static server + /activity endpoint returning activity JSON and DB snapshot
+2026-04-28T16:37:00Z — ADD   — /home/ian/code/curiousity/web/run_malaga.py — Runner that persists Málaga example to curiosity_data.db
+2026-04-28T16:37:00Z — ADD   — /home/ian/code/curiousity/web/run_malaga.sh — Wrapper to source .envrc and run the runner
+2026-04-28T17:20:39Z — EDIT  — /home/ian/code/curiousity/web/index.html — Replaced UI with Rumsfeld matrix visualization and activity feed
+2026-04-28T17:20:39Z — EDIT  — /home/ian/code/curiousity/web/serve_web.py — Added memory_notes to DB snapshot
+2026-04-28T17:45:00Z — ADD   — /home/ian/code/curiousity/requirements-dev.txt — Dev deps for Playwright + pytest
+2026-04-28T17:45:00Z — ADD   — /home/ian/code/curiousity/web/tests/test_grid_visible.py — Playwright test verifying .node elements are present and positioned
+2026-04-28T17:45:00Z — ADD   — /home/ian/code/curiousity/run_playwright.sh — Installer + test runner script

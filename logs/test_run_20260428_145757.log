@@ -1,0 +1,8 @@
+
+Re-running: TestDataInsertionRetrieval.test_insert_memory_note
+────────────────────────────────────────────────────────────────
+  FAIL  test_insert_memory_note  [test_harness.py:251]
+        NotImplementedError
+        → python3 test_harness.py TestDataInsertionRetrieval.test_insert_memory_note
+
+Log: /home/ian/code/curiousity/logs/test_run_20260428_145757.log

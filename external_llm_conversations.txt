@@ -1,0 +1,7 @@
+ChatGPT, to seed the conversation about Curiousity is:
+https://chatgpt.com/share/69f09467-9008-832c-9ae9-18f9fd2657f3
+
+Claude web, to generate an initial test harness:
+https://claude.ai/share/84ff2be3-c4e8-41d7-965f-933578f24c46
+
+

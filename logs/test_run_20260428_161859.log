@@ -1,0 +1,124 @@
+
+────────────────────────────────────────────────────────────────
+  Database Schema
+────────────────────────────────────────────────────────────────
+  PASS  test_all_four_tables_created
+  PASS  test_curiosity_queue_columns
+  PASS  test_curiosity_queue_invalid_status_rejected
+  PASS  test_entities_columns
+  PASS  test_entity_confidence_above_one_rejected
+  PASS  test_entity_confidence_below_zero_rejected
+  PASS  test_entity_id_is_primary_key  [Inserting two entities with the same id must raise IntegrityError.]
+  PASS  test_facts_columns
+  PASS  test_foreign_key_fact_requires_known_entity  [A fact whose subject_id does not exist in entities must be rejected.]
+  PASS  test_init_db_is_idempotent  [Calling init_db twice must not raise an error.]
+  PASS  test_memory_notes_columns
+
+────────────────────────────────────────────────────────────────
+  Data Insertion & Retrieval
+────────────────────────────────────────────────────────────────
+  PASS  test_advance_question_invalid_status_raises
+  PASS  test_advance_question_status
+  PASS  test_enqueue_question
+  PASS  test_insert_entity_returns_id
+  PASS  test_insert_fact_links_entities
+  PASS  test_insert_memory_note
+  PASS  test_inserted_entity_is_readable
+  PASS  test_memory_note_linked_entities_is_json
+
+────────────────────────────────────────────────────────────────
+  Extraction Pipeline
+────────────────────────────────────────────────────────────────
+  PASS  test_entity_confidence_in_range
+  PASS  test_extraction_calls_llm_once
+  PASS  test_extraction_passes_text_to_prompt
+  PASS  test_extraction_raises_on_missing_entities_key
+  PASS  test_extraction_raises_on_non_json_response
+  PASS  test_extraction_raises_on_out_of_range_confidence
+  PASS  test_extraction_returns_entities_key
+  PASS  test_extraction_returns_facts_key
+  PASS  test_extraction_returns_uncertainties_key
+  PASS  test_extraction_with_empty_input_still_valid  [Empty input should not crash — LLM may return empty lists.]
+  PASS  test_fact_confidence_in_range
+  PASS  test_facts_are_triples
+
+────────────────────────────────────────────────────────────────
+  Temporary Staging
+────────────────────────────────────────────────────────────────
+  PASS  test_multiple_stagings_accumulate
+  PASS  test_staged_data_contains_uncertainties
+  PASS  test_staged_data_preserved_for_consolidation
+  PASS  test_staging_does_not_write_to_entities
+  PASS  test_staging_does_not_write_to_facts
+
+────────────────────────────────────────────────────────────────
+  Consolidation
+────────────────────────────────────────────────────────────────
+  PASS  test_consolidation_confidence_not_lower_than_source
+  PASS  test_consolidation_passes_staged_data_to_prompt
+  PASS  test_consolidation_raises_on_missing_entities_key
+  PASS  test_consolidation_returns_entities
+  PASS  test_consolidation_returns_facts
+  PASS  test_duplicate_entities_reduce_count
+  PASS  test_empty_staged_input_returns_empty_graph
+
+────────────────────────────────────────────────────────────────
+  Curiosity Queue
+────────────────────────────────────────────────────────────────
+  PASS  test_each_question_has_priority
+  PASS  test_each_question_has_text
+  PASS  test_each_question_has_uncertainty
+  PASS  test_high_uncertainty_gets_high_priority
+  PASS  test_questions_generated
+  PASS  test_questions_raises_on_bad_uncertainty
+  PASS  test_questions_stored_in_db
+  PASS  test_status_lifecycle
+
+────────────────────────────────────────────────────────────────
+  Memory Decay
+────────────────────────────────────────────────────────────────
+  PASS  test_confidence_never_goes_negative
+  PASS  test_decay_deletes_low_confidence_notes
+  PASS  test_decay_does_not_affect_entities
+  PASS  test_decay_does_not_affect_facts
+  PASS  test_decay_preserves_high_confidence_notes
+  PASS  test_decay_reduces_confidence
+  PASS  test_decay_returns_count_of_deleted_notes
+
+────────────────────────────────────────────────────────────────
+  End-to-End
+────────────────────────────────────────────────────────────────
+  PASS  test_all_curiosity_items_start_pending
+  PASS  test_decay_after_pipeline_reduces_note
+  PASS  test_graph_referential_integrity_maintained  [Every fact's subject_id and object_id must exist in entities.]
+  PASS  test_malaga_example_generates_curiosity
+  PASS  test_malaga_example_stores_entities
+  PASS  test_malaga_example_stores_facts
+  PASS  test_memory_note_written
+  PASS  test_storage_within_budget  [After 50 ingestion cycles with decay, the DB size must stay]
+
+────────────────────────────────────────────────────────────────
+  Live LLM Smoke
+────────────────────────────────────────────────────────────────
+  PASS  test_call_llm_raises_on_missing_key  [call_llm raises ValueError when MISTRAL_API_KEY is not set.]
+  PASS  test_call_llm_returns_parsed_dict  [call_llm returns a parsed dict, not a raw string.]
+  PASS  test_live_consolidation_returns_valid_structure  [Real consolidation returns entities and facts.]
+  PASS  test_live_curiosity_generation  [Real curiosity generation returns non-empty questions.]
+  PASS  test_live_extraction_confidence_values  [All confidence values from a real extraction are in [0.0, 1.0].]
+  PASS  test_live_extraction_facts_are_triples  [Real extraction produces facts with subject, predicate, object.]
+  PASS  test_live_extraction_returns_valid_structure  [Real extraction returns entities, facts, and uncertainties.]
+  PASS  test_live_full_pipeline  [Full pipeline from raw text produces entities, facts, and questions in DB.]
+
+════════════════════════════════════════════════════════════════
+  74 tests   74 passed   0 failed   0 skipped
+════════════════════════════════════════════════════════════════
+
+────────────────────────────────────────────────────────────────
+  Newly Passing (+2)
+────────────────────────────────────────────────────────────────
+  + test_live_curiosity_generation
+    Real curiosity generation returns non-empty questions.
+  + test_live_full_pipeline
+    Full pipeline from raw text produces entities, facts, and questions in DB.
+
+Log: /home/ian/code/curiousity/logs/test_run_20260428_161859.log

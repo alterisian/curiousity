@@ -1,0 +1,6 @@
+
+Re-running: TestMemoryDecay.test_decay_reduces_confidence
+────────────────────────────────────────────────────────────────
+  PASS  test_decay_reduces_confidence
+
+Log: /home/ian/code/curiousity/logs/test_run_20260428_150407.log

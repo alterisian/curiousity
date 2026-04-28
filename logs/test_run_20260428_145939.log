@@ -1,0 +1,8 @@
+
+Re-running: TestExtractionPipeline.test_extraction_returns_entities_key
+────────────────────────────────────────────────────────────────
+  FAIL  test_extraction_returns_entities_key  [test_harness.py:305]
+        NotImplementedError
+        → python3 test_harness.py TestExtractionPipeline.test_extraction_returns_entities_key
+
+Log: /home/ian/code/curiousity/logs/test_run_20260428_145939.log

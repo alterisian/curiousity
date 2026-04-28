@@ -1,0 +1,6 @@
+
+Re-running: TestExtractionPipeline.test_extraction_returns_entities_key
+────────────────────────────────────────────────────────────────
+  PASS  test_extraction_returns_entities_key
+
+Log: /home/ian/code/curiousity/logs/test_run_20260428_145950.log

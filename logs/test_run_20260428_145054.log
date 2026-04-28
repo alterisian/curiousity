@@ -1,0 +1,8 @@
+
+Re-running: TestDataInsertionRetrieval.test_advance_question_invalid_status_raises
+────────────────────────────────────────────────────────────────
+  FAIL  test_advance_question_invalid_status_raises  [test_harness.py:290]
+        NotImplementedError
+        → python3 test_harness.py TestDataInsertionRetrieval.test_advance_question_invalid_status_raises
+
+Log: /home/ian/code/curiousity/logs/test_run_20260428_145054.log

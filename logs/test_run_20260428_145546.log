@@ -1,0 +1,8 @@
+
+Re-running: TestDataInsertionRetrieval.test_insert_fact_links_entities
+────────────────────────────────────────────────────────────────
+  FAIL  test_insert_fact_links_entities  [test_harness.py:240]
+        NotImplementedError
+        → python3 test_harness.py TestDataInsertionRetrieval.test_insert_fact_links_entities
+
+Log: /home/ian/code/curiousity/logs/test_run_20260428_145546.log
