@@ -7,4 +7,4 @@ python3 -m pip install -r requirements-dev.txt
 echo "Installing playwright browsers..."
 python3 -m playwright install chromium
 echo "Running playwright pytest..."
-pytest -q web/tests/test_grid_visible.py::test_grid_shows_nodes
+pytest -q tests/test_grid_visible.py::test_grid_shows_nodes

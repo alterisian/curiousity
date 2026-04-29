@@ -12,11 +12,12 @@ Encodes the meta-rules of Test-First Driven Development (TFDD):
 Run with:  python3 meta_test.py
 """
 
+import os
 import re
 import subprocess
 import sys
 
-HARNESS = "test_harness.py"
+HARNESS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_harness.py")
 PYTHON  = sys.executable
 WIDTH   = 64
 

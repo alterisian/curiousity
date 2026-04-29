@@ -30,6 +30,9 @@ import uuid
 from contextlib import contextmanager
 from unittest.mock import MagicMock
 
+# Ensure project root is on sys.path when run from tests/ or via pytest
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from curiosity.db import (
     init_db,
     insert_entity,
@@ -868,7 +871,7 @@ def _print_result(outcome, detail, class_name, method_name, doc=""):
         print(f"        → python3 test_harness.py {class_name}.{method_name}")
 
 
-LAST_PASSING_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs", "last_passing.json")
+LAST_PASSING_FILE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "logs", "last_passing.json")
 
 
 def _load_last_passing() -> set:
@@ -959,7 +962,7 @@ if __name__ == "__main__":
         SUITE_CLASSES.append(("Live LLM Smoke", TestLiveExtractionSmoke))
 
     timestamp = time.strftime("%Y%m%d_%H%M%S")
-    log_path  = os.path.join(os.path.dirname(__file__), "logs", f"test_run_{timestamp}.log")
+    log_path  = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "logs", f"test_run_{timestamp}.log")
     tee = _Tee(log_path)
     sys.stdout = tee
 

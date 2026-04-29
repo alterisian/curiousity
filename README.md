@@ -6,6 +6,35 @@ A minimal, local-first knowledge engine that ingests information, extracts struc
 
 ---
 
+## Seeing it live
+
+Start the web server, seed the DB with a sample pipeline run, then open the UI:
+
+```bash
+# 1. Start the server (runs on port 8000)
+PYTHONPATH=. python3 web/serve_web.py
+
+# 2. In a second terminal, run the pipeline to populate the DB
+source .envrc && PYTHONPATH=. python3 web/run_malaga.py
+
+# 3. Open in your browser
+open http://localhost:8000/index.html   # macOS
+xdg-open http://localhost:8000/index.html  # Linux
+```
+
+You should see the **Rumsfeld Matrix** — four dark quadrants with coloured pill nodes:
+
+| Colour | Quadrant | What it shows |
+|---|---|---|
+| Green | Known Knowns | Entities extracted from text (e.g. "Málaga", "tech startup ecosystem") |
+| Yellow | Known Unknowns | Curiosity questions the LLM generated about gaps |
+| Blue | Unknown Knowns | Memory notes linked to known entities |
+| Purple | Unknown Unknowns | Memory notes with no entity links |
+
+The page auto-refreshes every 1.4 seconds. Run `run_malaga.py` again (with different input text) to watch new nodes appear.
+
+---
+
 ## Overview
 
 | Property | Value |
@@ -17,23 +46,22 @@ A minimal, local-first knowledge engine that ingests information, extracts struc
 
 ---
 
-## Running the test harness
+## Running the tests
 
-No external dependencies. Uses Python stdlib only.
-
-```bash
-python test_harness.py
-```
-
-**Python 3.10+ required** (uses `list[str]` type hints).
-
-### Live LLM tests
-
-The live suite is skipped by default. To run it against the Mistral API:
+All tests live under `tests/`. Python 3.10+ required.
 
 ```bash
-CURIOSITY_LIVE_API=1 MISTRAL_API_KEY=your-key python3 test_harness.py
+# 74 mock + live tests (requires MISTRAL_API_KEY for the live suite)
+source .envrc && CURIOSITY_LIVE_API=1 pytest tests/test_harness.py
+
+# 1 Playwright UI test (requires the web server to be running on port 8000)
+.venv/bin/pytest tests/test_grid_visible.py
+
+# TFDD-formatted output with line numbers, re-run commands, and auto-saved logs
+source .envrc && CURIOSITY_LIVE_API=1 python3 tests/test_harness.py
 ```
+
+The live suite is skipped when `CURIOSITY_LIVE_API` is not set. Mock tests have no external dependencies.
 
 ---
 
@@ -118,7 +146,7 @@ Each cycle, memory notes have their confidence multiplied by a decay factor (def
 
 ## Test coverage
 
-66 tests across 8 suites.
+75 tests across 9 suites.
 
 | Suite | Tests | What it covers |
 |---|---|---|
@@ -130,6 +158,8 @@ Each cycle, memory notes have their confidence multiplied by a decay factor (def
 | Curiosity Queue | 8 | Question structure, DB storage, priority ordering, status lifecycle |
 | Memory Decay | 7 | Confidence reduction, pruning, non-negative floor, entities/facts unaffected |
 | End-to-End | 8 | Full Málaga pipeline, referential integrity, 100MB storage budget |
+| Live LLM Smoke | 8 | Real Mistral API calls — extraction, consolidation, curiosity, full pipeline |
+| UI (Playwright) | 1 | Rumsfeld Matrix grid renders nodes with correct positions |
 
 ---
 
@@ -145,7 +175,7 @@ Each cycle, memory notes have their confidence multiplied by a decay factor (def
 
 ---
 
-## Design guarantees (proven by 66 tests)
+## Design guarantees (proven by 75 tests)
 
 - Every fact references entities that exist — no orphaned triples
 - Every confidence value is in `[0.0, 1.0]` — enforced by both DB constraints and validation

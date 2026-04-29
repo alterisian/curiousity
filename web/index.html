@@ -51,7 +51,7 @@
   ['kk','ku','uk','uu'].forEach(id => { document.getElementById(id).innerHTML = '<h3>'+document.getElementById(id).dataset.title+'</h3>' })
 
         // Known Known: entities (green)
-        const kkNodes = []
+        const kkNodes = [];
         (db.entities||[]).forEach(e => {
           const el = document.createElement('div')
           el.className = 'node green'
@@ -64,7 +64,7 @@
         })
 
         // Known Unknown: curiosity_queue (explicit questions) — yellow
-        const kuNodes = []
+        const kuNodes = [];
         (db.curiosity_queue||[]).forEach(q => {
           const el = document.createElement('div')
           el.className = 'node yellow'
@@ -78,7 +78,7 @@
 
         // Unknown Known: memory_notes that reference entities (blue)
         const ukNodes = []
-        const uuNodes = []
+        const uuNodes = [];
         (db.memory_notes||[]).forEach(n => {
           const hasLinks = n.linked_entities && n.linked_entities.length>0
           const el = document.createElement('div')

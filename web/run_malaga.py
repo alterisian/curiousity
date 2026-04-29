@@ -45,6 +45,12 @@ def run(text: str):
             confidence = float(f.get('confidence', 0.5))
             insert_fact(conn, sid, pred, oid, confidence, source='malaga-run')
 
+    # Unknown Knowns: a compressed summary of the source text, linked to the entities we found
+    entity_db_ids = list(mapping.values())
+    if entity_db_ids:
+        insert_memory_note(conn, text[:120], 0.75, entity_db_ids)
+
+    # Unknown Unknowns: uncertainties the LLM flagged, not yet tied to known entities
     for u in extraction.get('uncertainties', []):
         insert_memory_note(conn, u, 0.5, [])
 
