@@ -42,6 +42,8 @@ from curiosity.db import (
     advance_question_status,
     apply_decay,
 )
+from curiosity.search import fetch_snippets
+from curiosity.learner import learn_one, related
 from curiosity.pipeline import (
     EXTRACTION_PROMPT,
     CONSOLIDATION_PROMPT,
@@ -823,6 +825,238 @@ class TestLiveExtractionSmoke(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
+# Suite 9 — Search Module
+# ---------------------------------------------------------------------------
+
+_BRAVE_MOCK_RESPONSE = {
+    "web": {"results": [
+        {"description": "Málaga has a booming tech startup scene.", "title": "Tech in Málaga", "url": "https://example.com/1"},
+        {"description": "Startups in Málaga attract EU funding.",   "title": "Funding",         "url": "https://example.com/2"},
+        {"description": "The Málaga ecosystem is growing fast.",   "title": "Growth",          "url": "https://example.com/3"},
+    ]}
+}
+
+def _make_brave_mock():
+    import io
+    import json as _json
+    from unittest.mock import MagicMock, patch
+    mock_resp = MagicMock()
+    mock_resp.__enter__ = lambda s: s
+    mock_resp.__exit__  = MagicMock(return_value=False)
+    mock_resp.read      = lambda: _json.dumps(_BRAVE_MOCK_RESPONSE).encode()
+    return patch("urllib.request.urlopen", return_value=mock_resp)
+
+
+class TestSearch(unittest.TestCase):
+
+    def setUp(self):
+        os.environ.setdefault("BRAVE_API_KEY", "test-fake-key")
+
+    def test_fetch_snippets_returns_list(self):
+        """fetch_snippets returns a list."""
+        with _make_brave_mock():
+            result = fetch_snippets("test query", max_results=2)
+        self.assertIsInstance(result, list)
+
+    def test_fetch_snippets_elements_are_strings(self):
+        """Every element returned by fetch_snippets is a non-empty string."""
+        with _make_brave_mock():
+            result = fetch_snippets("Málaga tech startups", max_results=3)
+        for item in result:
+            self.assertIsInstance(item, str)
+            self.assertTrue(item.strip(), "snippet must not be blank")
+
+    def test_fetch_snippets_respects_max_results(self):
+        """fetch_snippets returns at most max_results items."""
+        with _make_brave_mock():
+            result = fetch_snippets("anything", max_results=2)
+        self.assertLessEqual(len(result), 2)
+
+    def test_fetch_snippets_raises_on_missing_key(self):
+        """fetch_snippets raises ValueError when BRAVE_API_KEY is not set."""
+        original = os.environ.pop("BRAVE_API_KEY", None)
+        try:
+            with self.assertRaises(ValueError):
+                fetch_snippets("test")
+        finally:
+            if original is not None:
+                os.environ["BRAVE_API_KEY"] = original
+
+    def test_fetch_snippets_nonempty_for_known_query(self):
+        """fetch_snippets returns at least one snippet for a real query."""
+        with _make_brave_mock():
+            result = fetch_snippets("Málaga startup ecosystem", max_results=3)
+        self.assertGreater(len(result), 0)
+
+
+# ---------------------------------------------------------------------------
+# Suite 10 — Related Entities
+# ---------------------------------------------------------------------------
+
+class TestRelated(unittest.TestCase):
+
+    def test_related_returns_list(self):
+        """related() returns a list."""
+        with fresh_db() as conn:
+            eid = insert_entity(conn, "Alpha", "concept", 0.9)
+            result = related(conn, eid)
+            self.assertIsInstance(result, list)
+
+    def test_related_empty_for_isolated_entity(self):
+        """An entity with no facts has no related entities."""
+        with fresh_db() as conn:
+            eid = insert_entity(conn, "Isolated", "concept", 0.8)
+            self.assertEqual(related(conn, eid), [])
+
+    def test_related_finds_object_entity(self):
+        """related() finds an entity connected as the object of a fact."""
+        with fresh_db() as conn:
+            a = insert_entity(conn, "Alpha", "concept", 0.9)
+            b = insert_entity(conn, "Beta",  "concept", 0.9)
+            insert_fact(conn, a, "relates_to", b, 0.8)
+            result = related(conn, a)
+            names = [r["name"] for r in result]
+            self.assertIn("Beta", names)
+
+    def test_related_finds_subject_entity(self):
+        """related() finds an entity connected as the subject of a fact."""
+        with fresh_db() as conn:
+            a = insert_entity(conn, "Alpha", "concept", 0.9)
+            b = insert_entity(conn, "Beta",  "concept", 0.9)
+            insert_fact(conn, a, "relates_to", b, 0.8)
+            result = related(conn, b)
+            names = [r["name"] for r in result]
+            self.assertIn("Alpha", names)
+
+    def test_related_includes_predicate(self):
+        """Each related entry includes the predicate linking the two entities."""
+        with fresh_db() as conn:
+            a = insert_entity(conn, "Alpha", "concept", 0.9)
+            b = insert_entity(conn, "Beta",  "concept", 0.9)
+            insert_fact(conn, a, "part_of", b, 0.8)
+            result = related(conn, a)
+            self.assertTrue(any(r["predicate"] == "part_of" for r in result))
+
+    def test_related_multiple_connections(self):
+        """related() returns all connected entities, not just the first."""
+        with fresh_db() as conn:
+            a = insert_entity(conn, "Hub",   "concept", 0.9)
+            b = insert_entity(conn, "Spoke1","concept", 0.9)
+            c = insert_entity(conn, "Spoke2","concept", 0.9)
+            insert_fact(conn, a, "connects", b, 0.8)
+            insert_fact(conn, a, "connects", c, 0.8)
+            result = related(conn, a)
+            self.assertEqual(len(result), 2)
+
+
+# ---------------------------------------------------------------------------
+# Suite 11 — Learner
+# ---------------------------------------------------------------------------
+
+MOCK_SNIPPETS = [
+    "Barcelona has a thriving AI research community.",
+    "Several Barcelona startups focus on computer vision.",
+]
+
+def _mock_search(query):
+    return MOCK_SNIPPETS
+
+def _mock_llm_extract(prompt):
+    return {
+        "entities": [
+            {"id": "e1", "name": "Barcelona", "type": "Location", "confidence": 0.95},
+            {"id": "e2", "name": "AI research", "type": "Concept", "confidence": 0.85},
+        ],
+        "facts": [
+            {"subject_id": "e1", "predicate": "has", "object_id": "e2", "confidence": 0.9},
+        ],
+        "uncertainties": ["Which Barcelona AI labs are most active?"],
+    }
+
+def _mock_llm_consolidate(prompt):
+    return {
+        "entities": [
+            {"id": "e1", "name": "Barcelona", "type": "Location", "confidence": 0.95},
+            {"id": "e2", "name": "AI research", "type": "Concept", "confidence": 0.85},
+        ],
+        "facts": [
+            {"subject_id": "e1", "predicate": "has", "object_id": "e2", "confidence": 0.9},
+        ],
+    }
+
+def _mock_llm_curiosity(prompt):
+    return {"questions": [{"question": "What AI labs operate in Barcelona?", "uncertainty": 0.8, "priority": 0.7}]}
+
+def _mock_llm(prompt):
+    if "consolidation" in prompt.lower() or '"entities"' in prompt and '"facts"' in prompt and "staged" in prompt.lower():
+        return _mock_llm_consolidate(prompt)
+    if "curiosity" in prompt.lower() or "gaps" in prompt.lower():
+        return _mock_llm_curiosity(prompt)
+    return _mock_llm_extract(prompt)
+
+
+class TestLearner(unittest.TestCase):
+
+    def test_learn_one_returns_none_on_empty_queue(self):
+        """learn_one returns None when there are no pending questions."""
+        with fresh_db() as conn:
+            result = learn_one(conn, llm_fn=_mock_llm, search_fn=_mock_search)
+            self.assertIsNone(result)
+
+    def test_learn_one_returns_dict(self):
+        """learn_one returns a dict summarising what was learned."""
+        with fresh_db() as conn:
+            enqueue_question(conn, "What is the Málaga tech scene?", 0.9, 0.9)
+            result = learn_one(conn, llm_fn=_mock_llm, search_fn=_mock_search)
+            self.assertIsInstance(result, dict)
+
+    def test_learn_one_marks_question_resolved(self):
+        """learn_one advances the question status to 'resolved'."""
+        with fresh_db() as conn:
+            qid = enqueue_question(conn, "What is the Málaga tech scene?", 0.9, 0.9)
+            learn_one(conn, llm_fn=_mock_llm, search_fn=_mock_search)
+            row = conn.execute(
+                "SELECT status FROM curiosity_queue WHERE id=?", (qid,)
+            ).fetchone()
+            self.assertEqual(row[0], "resolved")
+
+    def test_learn_one_picks_highest_priority(self):
+        """learn_one resolves the question with the highest priority first."""
+        with fresh_db() as conn:
+            enqueue_question(conn, "Low priority question?",  0.5, 0.2)
+            qid = enqueue_question(conn, "High priority question?", 0.9, 0.9)
+            learn_one(conn, llm_fn=_mock_llm, search_fn=_mock_search)
+            row = conn.execute(
+                "SELECT status FROM curiosity_queue WHERE id=?", (qid,)
+            ).fetchone()
+            self.assertEqual(row[0], "resolved")
+
+    def test_learn_one_stores_new_entities(self):
+        """learn_one writes extracted entities into the DB."""
+        with fresh_db() as conn:
+            enqueue_question(conn, "Tell me about Barcelona AI?", 0.9, 0.9)
+            learn_one(conn, llm_fn=_mock_llm, search_fn=_mock_search)
+            count = conn.execute("SELECT count(*) FROM entities").fetchone()[0]
+            self.assertGreater(count, 0)
+
+    def test_learn_one_stores_memory_note(self):
+        """learn_one stores a memory note linking snippets to new entities."""
+        with fresh_db() as conn:
+            enqueue_question(conn, "Tell me about Barcelona AI?", 0.9, 0.9)
+            learn_one(conn, llm_fn=_mock_llm, search_fn=_mock_search)
+            count = conn.execute("SELECT count(*) FROM memory_notes").fetchone()[0]
+            self.assertGreater(count, 0)
+
+    def test_learn_one_summary_contains_question(self):
+        """The returned dict includes the question that was resolved."""
+        with fresh_db() as conn:
+            enqueue_question(conn, "What is the Málaga tech scene?", 0.9, 0.9)
+            result = learn_one(conn, llm_fn=_mock_llm, search_fn=_mock_search)
+            self.assertIn("question", result)
+            self.assertIn("Málaga", result["question"])
+
+
+# ---------------------------------------------------------------------------
 # Entry point — clean pass/fail reporter with line numbers and re-run commands
 # ---------------------------------------------------------------------------
 
@@ -835,6 +1069,9 @@ SUITE_CLASSES = [
     ("Curiosity Queue",            TestCuriosityQueue),
     ("Memory Decay",               TestMemoryDecay),
     ("End-to-End",                 TestEndToEnd),
+    ("Search Module",              TestSearch),
+    ("Related Entities",           TestRelated),
+    ("Learner",                    TestLearner),
 ]
 
 
