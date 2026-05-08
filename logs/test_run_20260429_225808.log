@@ -1,0 +1,6 @@
+
+Re-running: TestRelated.test_related_returns_list
+────────────────────────────────────────────────────────────────
+  PASS  test_related_returns_list  [related() returns a list.]
+
+Log: /home/ian/code/curiousity/logs/test_run_20260429_225808.log

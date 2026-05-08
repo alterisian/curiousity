@@ -1,8 +1,47 @@
 # Curiosity Memory System
 
+Author: Ian Moss
+
 A minimal, local-first knowledge engine that ingests information, extracts structured knowledge using an LLM, stores it efficiently, and actively generates questions about what it does not know.
 
 > The system does not just store knowledge — it actively manages uncertainty.
+
+Summary
+- Compact, demo-ready prototype that visualises an agent's epistemic state using the Rumsfeld matrix (Known Knowns / Known Unknowns / Unknown Knowns / Unknown Unknowns).
+- Demonstrates a testable interaction model for curiosity-driven discovery: entities, questions, memory notes and observable transitions between epistemic states.
+- Public-facing artifact intended to support technical discussions, interviews and early-stage evaluation.
+
+Why this matters
+- Translates a broad "superlearner" claim into measurable components: curiosity queue (intrinsic drive), memory consolidation (notes), recognition (entities + confidence) and actionable metrics.
+- Enables constrained-domain experiments and repeatable demos that surface product judgement, safety thinking and engineering delivery.
+
+Repository contents (high level)
+- web/index.html — single-page interactive dashboard that:
+  - Maps entities, curiosity queue and memory notes into the Rumsfeld quadrants.
+  - Streams a recent activity log and provides click-to-action interactions.
+  - Polls two minimal endpoints: GET /activity and POST /action.
+- Optionally add a small mock server and a short notebook for toy experiments (recommended for live demos).
+
+Quick demo (local)
+- Static-only (UI visible; dynamic endpoints absent):
+  - From repo root: python3 -m http.server 8000 --directory web
+  - Open: http://localhost:8000/index.html
+  - Note: the UI will attempt to fetch /activity and POST /action; without a mock server those calls will 404.
+- For full interactivity:
+  - Run a tiny mock server (Flask/Express/Node) that implements GET /activity and POST /action with deterministic data for reliable demos and recordings.
+
+API surface (for wiring a mock)
+- GET /activity
+  - Response shape: { activity: [...], db: { entities: [...], curiosity_queue: [...], memory_notes: [...] } }
+- POST /action
+  - Body: { id, kind } — used to cycle or advance a node's state in the demo
+
+For technical reviewers and hiring teams (single section)
+- Product narrative: begin with a single constrained domain (example: simulated object manipulation + language labels) where Rumsfeld flows are measurable and actionable.
+- Evaluation metrics: sample-efficiency, time-to-transfer, novelty discovery rate, safe-error-rate, human-intervention frequency.
+- Technical approach: focus on sample-efficient methods (world models / model-based RL), intrinsic curiosity modules, curriculum generation, memory consolidation and representation learning aimed at symbolic abstraction and transfer.
+- Safety & governance: prefer staged experiments, sandboxed environments, internal red-team reviews, immutable logging/audit trails and controlled knowledge gating.
+- Deliverables demonstrated here: frontend instrumentation, minimal backend endpoints for repeatable demos, a synthetic simulator adapter, and an evaluation harness with reproducible metrics.
 
 ---
 
@@ -192,3 +231,6 @@ Each cycle, memory notes have their confidence multiplied by a decay factor (def
 2. **Every fact has confidence** — nothing is absolute except explicitly defined constants.
 3. **Curiosity drives learning** — the system actively generates questions.
 4. **Aggressive deduplication** — multiple observations collapse into one belief.
+
+## License
+- This repository is provided as demonstration material, as is. Let the user beware. 
