@@ -1,182 +1,714 @@
 <!doctype html>
-<html>
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="utf-8" />
-  <title>Curiosity — Rumsfeld Matrix</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Curiosity — AI That Learns</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
-    body { font-family: Inter, Arial, sans-serif; margin: 18px; background: #fff; color: #111 }
-    .matrix { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; max-width: 1100px }
-    .quad { border: 1px solid #ddd; height: 320px; position: relative; border-radius: 8px; padding: 8px; background: #0f1720; color: #fff }
-    .quad h3 { margin: 0 0 6px 0; font-size: 14px }
-    .node { position: absolute; padding: 6px 10px; border-radius: 999px; color: #fff; font-size: 13px; }
-  .node { position: absolute; padding: 6px 10px; border-radius: 999px; color: #fff; font-size: 13px; display: inline-block; z-index: 2 }
-    .green { background: #16a34a }
-    .yellow { background: #f59e0b }
-    .blue { background: #3b82f6 }
-    .purple { background: #8b5cf6 }
-    .activity { margin-top: 18px; max-width: 1100px }
-    pre { background: #0b1220; color: #dbeafe; padding: 12px; border-radius: 6px; overflow: auto }
-    .legend { margin-top: 10px }
+    :root {
+      --bg: #0a0f1a;
+      --bg-elevated: rgba(15, 23, 42, 0.75);
+      --bg-glass: rgba(255, 255, 255, 0.04);
+      --bg-glass-hover: rgba(255, 255, 255, 0.07);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-hover: rgba(255, 255, 255, 0.14);
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent-green: #22c55e;
+      --accent-green-bg: rgba(34, 197, 94, 0.12);
+      --accent-yellow: #fbbf24;
+      --accent-yellow-bg: rgba(251, 191, 36, 0.12);
+      --accent-blue: #60a5fa;
+      --accent-blue-bg: rgba(96, 165, 250, 0.12);
+      --accent-purple: #a78bfa;
+      --accent-purple-bg: rgba(167, 139, 250, 0.12);
+      --radius: 12px;
+      --radius-sm: 8px;
+      --radius-full: 9999px;
+    }
+
+    [data-theme="light"] {
+      --bg: #f8fafc;
+      --bg-elevated: rgba(248, 250, 252, 0.8);
+      --bg-glass: rgba(255, 255, 255, 0.7);
+      --bg-glass-hover: rgba(255, 255, 255, 0.9);
+      --border: rgba(0, 0, 0, 0.08);
+      --border-hover: rgba(0, 0, 0, 0.15);
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+      --accent-green: #16a34a;
+      --accent-green-bg: rgba(34, 197, 94, 0.08);
+      --accent-yellow: #d97706;
+      --accent-yellow-bg: rgba(251, 191, 36, 0.08);
+      --accent-blue: #2563eb;
+      --accent-blue-bg: rgba(96, 165, 250, 0.08);
+      --accent-purple: #7c3aed;
+      --accent-purple-bg: rgba(167, 139, 250, 0.08);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      background-image:
+        radial-gradient(ellipse at 20% 0%, rgba(99, 102, 241, 0.08) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 100%, rgba(168, 85, 247, 0.06) 0%, transparent 60%);
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 32px;
+    }
+
+    /* ── Header ────────────────────────────────── */
+    header {
+      padding: 48px 0 40px;
+      text-align: center;
+      position: relative;
+    }
+    header h1 {
+      font-size: 2.25rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    header p {
+      margin-top: 8px;
+      color: var(--text-secondary);
+      font-size: 0.938rem;
+      font-weight: 400;
+    }
+    .badge {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 4px 14px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--accent-blue);
+      background: var(--accent-blue-bg);
+      border: 1px solid var(--accent-blue-bg);
+      border-radius: var(--radius-full);
+    }
+    .theme-toggle {
+      position: absolute;
+      top: 8px;
+      right: 0;
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-full);
+      padding: 6px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .theme-toggle:hover {
+      background: var(--bg-glass-hover);
+      color: var(--text-primary);
+    }
+    .theme-toggle svg {
+      width: 18px;
+      height: 18px;
+      transition: opacity 0.2s ease;
+    }
+
+    /* ── Matrix Grid ───────────────────────────── */
+    .matrix {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .quad {
+      position: relative;
+      min-height: 340px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 16px;
+      overflow: visible;
+      transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+    .quad[data-accent="green"]  { background: var(--accent-green-bg); border-color: rgba(34,197,94,0.15); }
+    .quad[data-accent="yellow"] { background: var(--accent-yellow-bg); border-color: rgba(251,191,36,0.15); }
+    .quad[data-accent="blue"]   { background: var(--accent-blue-bg);    border-color: rgba(96,165,250,0.15); }
+    .quad[data-accent="purple"] { background: var(--accent-purple-bg);  border-color: rgba(167,139,250,0.15); }
+    .quad:hover {
+      box-shadow: 0 0 0 1px var(--border-hover), 0 8px 32px rgba(0,0,0,0.1);
+    }
+
+    .quad h3 {
+      font-size: 0.813rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+      padding-left: 2px;
+    }
+
+    /* subtle quadrant accent bar */
+    .quad::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      border-radius: var(--radius) var(--radius) 0 0;
+      opacity: 0.7;
+    }
+    .quad[data-accent="green"]::before { background: var(--accent-green); }
+    .quad[data-accent="yellow"]::before { background: var(--accent-yellow); }
+    .quad[data-accent="blue"]::before { background: var(--accent-blue); }
+    .quad[data-accent="purple"]::before { background: var(--accent-purple); }
+
+    /* ── Nodes ─────────────────────────────────── */
+    .node {
+      position: absolute;
+      padding: 7px 14px;
+      border-radius: var(--radius-full);
+      font-size: 0.813rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      cursor: pointer;
+      z-index: 2;
+      transition: transform 0.18s ease, box-shadow 0.2s ease, background 0.2s ease;
+      user-select: none;
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      max-width: 168px;
+      box-sizing: border-box;
+    }
+    .node .label {
+      display: block;
+      max-width: 140px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .node:hover {
+      transform: translateY(-2px) scale(1.04);
+      background: var(--bg-glass-hover);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+      z-index: 10;
+    }
+    .node:active { transform: scale(0.97); }
+
+    /* tooltip that appears above bubble on hover */
+    .node .tip {
+      position: absolute;
+      top: -38px;
+      left: 50%;
+      transform: translateX(-50%) scale(0.92);
+      white-space: normal;
+      width: 220px;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+      line-height: 1.5;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      z-index: 100;
+    }
+    .node:hover .tip {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+    }
+
+    /* ── Collapsible Section ────────────────────── */
+    .collapsible {
+      margin-bottom: 24px;
+    }
+    .collapsible-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--bg-glass);
+      backdrop-filter: blur(8px);
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.15s ease;
+    }
+    .collapsible-header:hover {
+      background: var(--bg-glass-hover);
+    }
+    .collapsible-header h2, .collapsible-header h3 {
+      font-size: 1.063rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+    .collapsible-header .meta-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .collapsible-header .timestamp {
+      font-size: 0.813rem;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+    .chevron {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      transition: transform 0.25s ease;
+      color: var(--text-muted);
+    }
+    .collapsible.open .chevron {
+      transform: rotate(180deg);
+    }
+    .collapsible-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.35s ease, opacity 0.25s ease;
+      opacity: 0;
+    }
+    .collapsible.open .collapsible-body {
+      max-height: 2000px;
+      opacity: 1;
+    }
+
+    /* ── Section Titles ─────────────────────────── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .section-header h2, .section-header h3 {
+      font-size: 1.063rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+    .section-header .timestamp {
+      font-size: 0.813rem;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    /* ── Activity Log ───────────────────────────── */
+    .activity-card {
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--bg-glass);
+      backdrop-filter: blur(8px);
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    .activity-item {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s ease;
+    }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-item:hover { background: var(--bg-glass-hover); }
+    .activity-item .meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .activity-item .kind-badge {
+      display: inline-block;
+      padding: 2px 10px;
+      font-size: 0.688rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-radius: var(--radius-full);
+      color: #fff;
+    }
+    .activity-item .kind-badge.green  { background: var(--accent-green); }
+    .activity-item .kind-badge.yellow { background: var(--accent-yellow); color: #1a1a1a; }
+    .activity-item .kind-badge.blue   { background: var(--accent-blue); }
+    .activity-item .kind-badge.purple { background: var(--accent-purple); }
+    .activity-item .ts {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .activity-item pre {
+      margin-top: 6px;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-glass);
+      color: var(--text-secondary);
+      font-size: 0.813rem;
+      font-family: 'JetBrains Mono', monospace;
+      line-height: 1.55;
+      overflow: auto;
+      max-height: 180px;
+    }
+
+    /* ── Raw Log ────────────────────────────────── */
+    textarea#rawlog {
+      width: 100%;
+      min-height: 180px;
+      padding: 14px 18px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--bg-glass);
+      color: var(--text-secondary);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.813rem;
+      line-height: 1.55;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.2s ease;
+      margin-bottom: 24px;
+    }
+    textarea#rawlog:focus {
+      border-color: var(--border-hover);
+    }
+
+    /* ── Node List & Debug ──────────────────────── */
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .info-card {
+      padding: 16px 20px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--bg-glass);
+      backdrop-filter: blur(8px);
+    }
+    .info-card h3 {
+      font-size: 0.813rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+    .info-card .entry {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      padding: 6px 0;
+      font-size: 0.813rem;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border);
+    }
+    .info-card .entry:last-child { border-bottom: none; }
+    .info-card .entry b {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+    #debug {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.813rem;
+      color: var(--text-muted);
+      padding: 16px 20px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--bg-glass);
+      line-height: 1.6;
+    }
+
+    /* ── Responsive ─────────────────────────────── */
+    @media (max-width: 768px) {
+      .matrix, .info-grid { grid-template-columns: 1fr; }
+      .container { padding: 0 16px; }
+      header h1 { font-size: 1.75rem; }
+    }
   </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode" aria-label="Toggle theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="5"/>
+          <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+      <h1>Curiosity</h1>
+      <p>AI That Learns — Exploring the unknown through the Rumsfeld Matrix</p>
+      <span class="badge">Prototype · Málaga Startups</span>
+    </header>
+
+    <div class="matrix">
+      <div class="quad" id="kk" data-title="Known Knowns" data-accent="green"><h3>Known Knowns</h3></div>
+      <div class="quad" id="ku" data-title="Known Unknowns" data-accent="yellow"><h3>Known Unknowns</h3></div>
+      <div class="quad" id="uk" data-title="Unknown Knowns" data-accent="blue"><h3>Unknown Knowns</h3></div>
+      <div class="quad" id="uu" data-title="Unknown Unknowns" data-accent="purple"><h3>Unknown Unknowns</h3></div>
+    </div>
+
+    <div class="collapsible" id="activity-section">
+      <div class="collapsible-header" onclick="toggleCollapsible('activity-section')">
+        <h2>Activity</h2>
+        <div class="meta-row">
+          <span class="timestamp">Last update: <span id="headline_ts">...</span></span>
+          <svg class="chevron" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M4.5 6l3.5 4L11.5 6H4.5z"/>
+          </svg>
+        </div>
+      </div>
+      <div class="collapsible-body">
+        <div id="out" class="activity-card"></div>
+        <div class="section-header" style="margin-top:16px">
+          <h3>Raw Activity Log</h3>
+        </div>
+        <textarea id="rawlog" readonly></textarea>
+      </div>
+    </div>
+
+    <div class="info-grid">
+      <div class="info-card">
+        <h3>Nodes</h3>
+        <div id="node_list"></div>
+      </div>
+      <div class="info-card">
+        <h3>Debug</h3>
+        <pre id="debug"></pre>
+      </div>
+    </div>
+  </div>
+
   <script>
+    /* ── Theme ──────────────────────────────────── */
+    function initTheme() {
+      const stored = localStorage.getItem('curiosity-theme');
+      if (stored) {
+        document.documentElement.setAttribute('data-theme', stored);
+      } else {
+        const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+        document.documentElement.setAttribute('data-theme', prefersLight ? 'light' : 'dark');
+      }
+      updateToggleIcons();
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('curiosity-theme', next);
+      updateToggleIcons();
+    }
+
+    function updateToggleIcons() {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      document.querySelector('.icon-sun').style.display = isDark ? 'block' : 'none';
+      document.querySelector('.icon-moon').style.display = isDark ? 'none' : 'block';
+    }
+
+    initTheme();
+
+    /* ── Rest of app ────────────────────────────── */
     function placeGrid(el, quad, index, total) {
-      // Deterministic grid placement: calculate number of columns and rows
-      const paddingX = 12
-      const paddingY = 36
-      const cols = Math.max(1, Math.ceil(Math.sqrt(total)))
-      const rows = Math.max(1, Math.ceil(total / cols))
-      const col = index % cols
-      const row = Math.floor(index / cols)
-      const w = Math.max(16, quad.clientWidth - paddingX*2)
-      const h = Math.max(16, quad.clientHeight - paddingY)
-      const cellW = w / cols
-      const cellH = h / rows
-      const x = Math.round(paddingX + col * cellW + (cellW - el.offsetWidth)/2)
-      const y = Math.round(paddingY + row * cellH + (cellH - el.offsetHeight)/2)
-      el.style.left = (x) + 'px'
-      el.style.top = (y) + 'px'
+      const paddingX = 12;
+      const paddingY = 36;
+      const cols = Math.max(1, Math.ceil(Math.sqrt(total)));
+      const rows = Math.max(1, Math.ceil(total / cols));
+      const col = index % cols;
+      const row = Math.floor(index / cols);
+      const w = Math.max(16, quad.clientWidth - paddingX * 2);
+      const h = Math.max(16, quad.clientHeight - paddingY);
+      const cellW = w / cols;
+      const cellH = h / rows;
+      const x = Math.round(paddingX + col * cellW + (cellW - el.offsetWidth) / 2);
+      const y = Math.round(paddingY + row * cellH + (cellH - el.offsetHeight) / 2);
+      el.style.left = x + 'px';
+      el.style.top = y + 'px';
     }
 
     async function refresh() {
       try {
-        const res = await fetch('/activity')
-        const data = await res.json()
-        const db = data.db || {}
+        const res = await fetch('/activity');
+        const data = await res.json();
+        const db = data.db || {};
 
-  // Update headline with last activity timestamp
-  const last = (data.activity && data.activity.length) ? data.activity[data.activity.length-1].ts : null
-  document.getElementById('headline_ts').textContent = last || 'no activity yet'
+        const last = (data.activity && data.activity.length) ? data.activity[data.activity.length - 1].ts : null;
+        document.getElementById('headline_ts').textContent = last || 'no activity yet';
 
-  // Clear quads
-  ['kk','ku','uk','uu'].forEach(id => { document.getElementById(id).innerHTML = '<h3>'+document.getElementById(id).dataset.title+'</h3>' })
+        ['kk', 'ku', 'uk', 'uu'].forEach(id => {
+          const quad = document.getElementById(id);
+          const h3 = quad.querySelector('h3');
+          quad.innerHTML = '';
+          quad.appendChild(h3);
+        });
 
-        // Known Known: entities (green)
         const kkNodes = [];
-        (db.entities||[]).forEach(e => {
-          const el = document.createElement('div')
-          el.className = 'node green'
-          el.textContent = e.name
-          el.dataset.id = e.id
-          el.dataset.kind = 'entity'
-          el.onclick = () => nodeClicked(el)
-          document.getElementById('kk').appendChild(el)
-          kkNodes.push(el)
-        })
+        (db.entities || []).forEach(e => {
+          const el = document.createElement('div');
+          el.className = 'node green';
+          el.dataset.id = e.id;
+          el.dataset.kind = 'entity';
+          el.onclick = () => nodeClicked(el);
+          el.innerHTML = `<span class="label">${e.name}</span><span class="tip">${e.name}</span>`;
+          document.getElementById('kk').appendChild(el);
+          kkNodes.push(el);
+        });
 
-        // Known Unknown: curiosity_queue (explicit questions) — yellow
         const kuNodes = [];
-        (db.curiosity_queue||[]).forEach(q => {
-          const el = document.createElement('div')
-          el.className = 'node yellow'
-          el.textContent = q.question.length>28 ? q.question.slice(0,26)+'…' : q.question
-          el.dataset.id = q.id
-          el.dataset.kind = 'question'
-          el.onclick = () => nodeClicked(el)
-          document.getElementById('ku').appendChild(el)
-          kuNodes.push(el)
-        })
+        (db.curiosity_queue || []).forEach(q => {
+          const el = document.createElement('div');
+          el.className = 'node yellow';
+          el.dataset.id = q.id;
+          el.dataset.kind = 'question';
+          el.onclick = () => nodeClicked(el);
+          const short = q.question.length > 36 ? q.question.slice(0, 34) + '…' : q.question;
+          el.innerHTML = `<span class="label">${short}</span><span class="tip">${q.question}</span>`;
+          document.getElementById('ku').appendChild(el);
+          kuNodes.push(el);
+        });
 
-        // Unknown Known: memory_notes that reference entities (blue)
-        const ukNodes = []
+        const ukNodes = [];
         const uuNodes = [];
-        (db.memory_notes||[]).forEach(n => {
-          const hasLinks = n.linked_entities && n.linked_entities.length>0
-          const el = document.createElement('div')
-          el.className = 'node '+(hasLinks? 'blue':'purple')
-          const text = n.text.length>28 ? n.text.slice(0,26)+'…' : n.text
-          el.textContent = '"'+text+'"'
-          el.dataset.id = n.id
-          el.dataset.kind = 'note'
-          el.onclick = () => nodeClicked(el)
-          const target = hasLinks ? 'uk' : 'uu'
-          document.getElementById(target).appendChild(el)
-          if (hasLinks) ukNodes.push(el); else uuNodes.push(el)
-        })
+        (db.memory_notes || []).forEach(n => {
+          const hasLinks = n.linked_entities && n.linked_entities.length > 0;
+          const el = document.createElement('div');
+          el.className = 'node ' + (hasLinks ? 'blue' : 'purple');
+          const fullText = '"' + n.text + '"';
+          el.dataset.id = n.id;
+          el.dataset.kind = 'note';
+          el.onclick = () => nodeClicked(el);
+          const short = n.text.length > 40 ? '"' + n.text.slice(0, 38) + '…"' : fullText;
+          el.innerHTML = `<span class="label">${short}</span><span class="tip">${fullText}</span>`;
+          const target = hasLinks ? 'uk' : 'uu';
+          document.getElementById(target).appendChild(el);
+          if (hasLinks) ukNodes.push(el); else uuNodes.push(el);
+        });
 
-        // Place nodes deterministically on a grid
-        kkNodes.forEach((el, i) => placeGrid(el, document.getElementById('kk'), i, kkNodes.length))
-        kuNodes.forEach((el, i) => placeGrid(el, document.getElementById('ku'), i, kuNodes.length))
-        ukNodes.forEach((el, i) => placeGrid(el, document.getElementById('uk'), i, ukNodes.length))
-        uuNodes.forEach((el, i) => placeGrid(el, document.getElementById('uu'), i, uuNodes.length))
+        kkNodes.forEach((el, i) => placeGrid(el, document.getElementById('kk'), i, kkNodes.length));
+        kuNodes.forEach((el, i) => placeGrid(el, document.getElementById('ku'), i, kuNodes.length));
+        ukNodes.forEach((el, i) => placeGrid(el, document.getElementById('uk'), i, ukNodes.length));
+        uuNodes.forEach((el, i) => placeGrid(el, document.getElementById('uu'), i, uuNodes.length));
 
-  // Activity list
-        const out = document.getElementById('out')
-        out.innerHTML = ''
+        const out = document.getElementById('out');
+        out.innerHTML = '';
         data.activity.slice(-80).reverse().forEach(e => {
-          const d = document.createElement('div')
-          d.innerHTML = `<div><b>${e.kind}</b> <small>${e.ts}</small></div><pre>${JSON.stringify(e.payload, null, 2)}</pre>`
-          out.appendChild(d)
-        })
+          const d = document.createElement('div');
+          d.className = 'activity-item';
+          const kindClass = e.kind.toLowerCase().split(' ')[0];
+          const badgeClass = {'known known':'green','known unknown':'yellow','unknown known':'blue','unknown unknown':'purple'}[e.kind.toLowerCase()] || '';
+          d.innerHTML = `
+            <div class="meta">
+              <span class="kind-badge ${badgeClass}">${e.kind}</span>
+              <span class="ts">${e.ts}</span>
+            </div>
+            <pre>${escapeHtml(JSON.stringify(e.payload, null, 2))}</pre>`;
+          out.appendChild(d);
+        });
 
-        // Raw log textarea
-        const raw = document.getElementById('rawlog')
-        raw.value = (data.activity||[]).map(x=>JSON.stringify(x)).join('\n')
+        const raw = document.getElementById('rawlog');
+        raw.value = (data.activity || []).map(x => JSON.stringify(x)).join('\n');
 
-        // Fallback textual nodes and debug info
-        const nodeList = document.getElementById('node_list')
-        nodeList.innerHTML = ''
-        const debug = document.getElementById('debug')
-        const counts = { kk: (db.entities||[]).length, ku: (db.curiosity_queue||[]).length, uk: (db.memory_notes||[]).filter(n=>n.linked_entities && n.linked_entities.length>0).length, uu: (db.memory_notes||[]).filter(n=>!n.linked_entities || n.linked_entities.length==0).length }
-        debug.textContent = JSON.stringify(counts, null, 2)
-        if ((db.entities||[]).length) {
-          const h = document.createElement('div'); h.innerHTML = '<b>Entities</b>:'; nodeList.appendChild(h)
-          (db.entities||[]).forEach(e=>{ const p=document.createElement('div'); p.textContent = e.name + ' ('+e.confidence.toFixed(2)+')'; nodeList.appendChild(p) })
+        const nodeList = document.getElementById('node_list');
+        nodeList.innerHTML = '';
+        const debug = document.getElementById('debug');
+        const counts = {
+          kk: (db.entities || []).length,
+          ku: (db.curiosity_queue || []).length,
+          uk: (db.memory_notes || []).filter(n => n.linked_entities && n.linked_entities.length > 0).length,
+          uu: (db.memory_notes || []).filter(n => !n.linked_entities || n.linked_entities.length === 0).length
+        };
+        debug.textContent = JSON.stringify(counts, null, 2);
+
+        if ((db.entities || []).length) {
+          const h = document.createElement('div');
+          h.className = 'entry';
+          h.innerHTML = '<b>Entities</b>';
+          nodeList.appendChild(h);
+          (db.entities || []).forEach(e => {
+            const p = document.createElement('div');
+            p.className = 'entry';
+            p.innerHTML = `<span>${escapeHtml(e.name)}</span> <span style="color:var(--text-muted)">(${(e.confidence).toFixed(2)})</span>`;
+            nodeList.appendChild(p);
+          });
         }
-        if ((db.curiosity_queue||[]).length) {
-          const h = document.createElement('div'); h.innerHTML = '<b>Questions</b>:'; nodeList.appendChild(h)
-          (db.curiosity_queue||[]).forEach(q=>{ const p=document.createElement('div'); p.textContent = q.question + ' ('+q.uncertainty+')'; nodeList.appendChild(p) })
+        if ((db.curiosity_queue || []).length) {
+          const h = document.createElement('div');
+          h.className = 'entry';
+          h.innerHTML = '<b>Questions</b>';
+          nodeList.appendChild(h);
+          (db.curiosity_queue || []).forEach(q => {
+            const p = document.createElement('div');
+            p.className = 'entry';
+            p.innerHTML = `<span>${escapeHtml(q.question)}</span> <span style="color:var(--text-muted)">(${q.uncertainty})</span>`;
+            nodeList.appendChild(p);
+          });
         }
-        if ((db.memory_notes||[]).length) {
-          const h = document.createElement('div'); h.innerHTML = '<b>Memory Notes</b>:'; nodeList.appendChild(h)
-          (db.memory_notes||[]).forEach(n=>{ const p=document.createElement('div'); p.textContent = n.text + ' [' + (n.linked_entities? n.linked_entities.length : 0) + ' links]'; nodeList.appendChild(p) })
+        if ((db.memory_notes || []).length) {
+          const h = document.createElement('div');
+          h.className = 'entry';
+          h.innerHTML = '<b>Memory Notes</b>';
+          nodeList.appendChild(h);
+          (db.memory_notes || []).forEach(n => {
+            const p = document.createElement('div');
+            p.className = 'entry';
+            p.innerHTML = `<span>${escapeHtml(n.text)}</span> <span style="color:var(--text-muted)">[${n.linked_entities ? n.linked_entities.length : 0} links]</span>`;
+            nodeList.appendChild(p);
+          });
         }
-      } catch(err) {
-        console.error(err)
+      } catch (err) {
+        console.error(err);
       }
     }
 
-    async function nodeClicked(el) {
-      // Send an action to the server to 'cycle' the node's quadrant
-      const payload = { id: el.dataset.id, kind: el.dataset.kind }
-      try {
-        await fetch('/action', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) })
-        // Visual feedback: flash
-        el.style.transform = 'scale(1.05)'
-        setTimeout(()=>el.style.transform='scale(1)',200)
-      } catch(e) { console.error(e) }
+    function escapeHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
-    setInterval(refresh, 1400)
-    window.onload = refresh
+
+    function toggleCollapsible(id) {
+      document.getElementById(id).classList.toggle('open');
+    }
+
+    async function nodeClicked(el) {
+      const payload = { id: el.dataset.id, kind: el.dataset.kind };
+      try {
+        await fetch('/action', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        el.style.transform = 'scale(1.1)';
+        setTimeout(() => el.style.transform = 'scale(1)', 200);
+      } catch (e) { console.error(e); }
+    }
+
+    setInterval(refresh, 1400);
+    window.onload = refresh;
   </script>
-</head>
-<body>
-  <h1>Curiosity - AI That Learns</h1>
-  (A prototype around the topic: Startups In Maĺaga, using the Rumsfeld Matrix.)
-
-  <div class="matrix">
-    <div class="quad" id="kk" data-title="Known Knowns"><h3>Known Knowns</h3></div>
-    <div class="quad" id="ku" data-title="Known Unknowns"><h3>Known Unknowns</h3></div>
-    <div class="quad" id="uk" data-title="Unknown Knowns"><h3>Unknown Knowns</h3></div>
-    <div class="quad" id="uu" data-title="Unknown Unknowns"><h3>Unknown Unknowns</h3></div>
-  </div>
-
-  <div class="legend">
-    <strong>Legend:</strong>
-    <span style="display:inline-block;margin-left:8px;padding:6px 10px;background:#16a34a;color:#fff;border-radius:6px">Known Known</span>
-    <span style="display:inline-block;margin-left:8px;padding:6px 10px;background:#f59e0b;color:#fff;border-radius:6px">Known Unknown</span>
-    <span style="display:inline-block;margin-left:8px;padding:6px 10px;background:#3b82f6;color:#fff;border-radius:6px">Unknown Known</span>
-    <span style="display:inline-block;margin-left:8px;padding:6px 10px;background:#8b5cf6;color:#fff;border-radius:6px">Unknown Unknown</span>
-  </div>
-
-  <h2 style="margin-top:20px">Activity</h2>
-  <div>Last update: <span id="headline_ts">...</span></div>
-
-  <div id="out" class="activity"></div>
-  <h3>Raw activity log</h3>
-  <textarea id="rawlog" style="width:100%;height:220px;background:#0b1220;color:#dbeafe;border-radius:6px;padding:8px;overflow:auto"></textarea>
-  <h3 style="margin-top:18px">Nodes (text fallback)</h3>
-  <div id="node_list" style="padding:8px;border:1px solid #ddd;border-radius:8px;max-width:1100px;background:#fff;color:#111;min-height:60px"></div>
-  <h3 style="margin-top:12px">Debug</h3>
-  <pre id="debug" style="max-width:1100px;background:#f6f8fa;padding:8px;border-radius:8px;min-height:40px"></pre>
 </body>
 </html>
