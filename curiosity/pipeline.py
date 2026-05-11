@@ -1,3 +1,5 @@
+import urllib.parse
+
 EXTRACTION_PROMPT = """\
 You are a knowledge extraction engine.
 Given the input text, extract:
@@ -38,25 +40,34 @@ def call_llm(prompt: str) -> dict:
     from curiosity.logger import log_llm_call
 
     api_key = os.environ.get("MISTRAL_API_KEY")
-    if not api_key:
-        raise ValueError("MISTRAL_API_KEY environment variable is not set.")
+    base_uri = os.environ.get("CURIOUSITY_LLM_BASE_URI")
+    if not base_uri:
+        base_uri = "https://api.mistral.ai/"
+        if not api_key:
+            raise ValueError("MISTRAL_API_KEY environment variable is not set.")
+
+    # request timeout in seconds
+    llm_timeout = int(os.environ.get("CURIOUSITY_LLM_TIMEOUT") or 30)
+
+    headers = {
+        "Content-Type": "application/json",
+    }
+
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
 
     payload = _json.dumps({
         "model": "mistral-small-latest",
         "messages": [{"role": "user", "content": prompt}],
         "response_format": {"type": "json_object"},
     }).encode()
-
     req = urllib.request.Request(
-        "https://api.mistral.ai/v1/chat/completions",
+        urllib.parse.urljoin(base_uri, "/v1/chat/completions"),
         data=payload,
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-        },
+        headers=headers,
     )
     try:
-        with urllib.request.urlopen(req, timeout=30) as resp:
+        with urllib.request.urlopen(req, timeout=llm_timeout) as resp:
             body = _json.loads(resp.read())
     except urllib.error.HTTPError as e:
         raise ValueError(f"Mistral API error {e.code}: {e.reason}") from e
