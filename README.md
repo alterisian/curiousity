@@ -15,6 +15,8 @@ Why this matters
 - Translates a broad "superlearner" claim into measurable components: curiosity queue (intrinsic drive), memory consolidation (notes), recognition (entities + confidence) and actionable metrics.
 - Enables constrained-domain experiments and repeatable demos that surface product judgement, safety thinking and engineering delivery.
 
+[matrix]: https://github.com/alterisian/curiousity/raw/master/rumsfeldmatrix.png "Curiousity Matrix"
+
 Repository contents (high level)
 - web/index.html — single-page interactive dashboard that:
   - Maps entities, curiosity queue and memory notes into the Rumsfeld quadrants.
